@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบทดสอบคณิตศาสตร์</title>
+    <style>
+        body {
+        <img src="fixit.png" alt="Logo" class="w-32 h-auto mb-6" />
+
+            font-family: 'Kanit', sans-serif;
+            background-color: #fceaff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .quiz-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #c71585;
+            margin-bottom: 20px;
+        }
+
+        .question {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .answers div {
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        #next-button {
+            background-color: #c71585;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        #next-button:hover {
+            background-color: #a10e6c;
+        }
+
+        #results {
+            font-size: 20px;
+            color: #333;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>แบบทดสอบคณิตศาสตร์</h1>
+    <form id="quiz-form"></form>
+    <button id="next-button" style="display: none;">คำถามถัดไป</button>
+    <div id="results" style="display: none;"></div>
+</div>
+
+<script>
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    // สุ่มลำดับ array
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // แสดงคำถาม
+    function showQuestion(index) {
+        if (index >= questions.length) {
+            showResults();
+            return;
+        }
+
+        const question = questions[index];
+        const quizForm = document.getElementById('quiz-form');
+        quizForm.innerHTML = ''; // ล้างคำถามเก่า
+
+        const questionDiv = document.createElement('div');
+        questionDiv.classList.add('question');
+
+        const questionTitle = document.createElement('h3');
+        questionTitle.textContent = `${index + 1}. ${question.questionText}`;
+        questionDiv.appendChild(questionTitle);
+
+        const answersDiv = document.createElement('div');
+        answersDiv.classList.add('answers');
+
+        ['answer1', 'answer2', 'answer3'].forEach((key, i) => {
+            const option = document.createElement('div');
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = `question${index}`;
+            radio.value = i + 1;
+
+            const label = document.createElement('label');
+            label.textContent = question[key];
+            label.style.marginLeft = '8px';
+
+            option.appendChild(radio);
+            option.appendChild(label);
+            answersDiv.appendChild(option);
+        });
+
+        questionDiv.appendChild(answersDiv);
+        quizForm.appendChild(questionDiv);
+
+        const nextButton = document.getElementById('next-button');
+        nextButton.style.display = 'block';
+
+        nextButton.onclick = () => {
+            const selected = document.querySelector(`input[name="question${index}"]:checked`);
+            if (!selected) {
+                alert('กรุณาเลือกคำตอบ');
+                return;
+            }
+
+            if (parseInt(selected.value) === parseInt(question.correctAnswer)) {
+                score++;
+            }
+
+            currentQuestionIndex++;
+            showQuestion(currentQuestionIndex);
+        };
+    }
+
+    // แสดงคะแนน
+    function showResults() {
+    document.getElementById('quiz-form').innerHTML = '';
+    document.getElementById('next-button').style.display = 'none';
+
+    const resultDiv = document.getElementById('results');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `
+        <p>คุณได้คะแนน <strong>${score}</strong> จาก <strong>${questions.length}</strong></p>
+        <button onclick="goBack()" style="
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #6c63ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        ">กลับไปหน้าหลัก</button>
+    `;
+}
+
+function goBack() {
+    window.location.href = "wicha.html";
+}
+
+
+    // เรียก API และสุ่ม 10 ข้อ
+    fetch('http://localhost:8080/questions')
+        .then(res => res.json())
+        .then(data => {
+            const shuffled = shuffleArray(data);
+            questions = shuffled.slice(0, 10);
+            showQuestion(currentQuestionIndex);
+        })
+        .catch(err => {
+            console.error('เกิดข้อผิดพลาด:', err);
+            document.getElementById('quiz-form').textContent = 'ไม่สามารถโหลดคำถามได้';
+        });
+
+</script>
+
+</body>
+</html>
